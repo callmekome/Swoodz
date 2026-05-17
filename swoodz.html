@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Swoodz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: flex; }
+
+    /* ── LANDING ── */
+    #screen-landing {
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .glow-teal {
+      position: absolute; top: 20%; left: 50%;
+      transform: translateX(-50%);
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,200,200,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .glow-orange {
+      position: absolute; bottom: 10%; right: 10%;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,107,43,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .landing-card {
+      width: 100%; max-width: 440px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 48px 36px;
+      box-shadow: 0 0 60px rgba(0,200,200,0.05);
+      position: relative; z-index: 1;
+    }
+    .logo-wrap { margin-bottom: 40px; }
+    .badge {
+      display: inline-block;
+      background: rgba(0,200,200,0.1);
+      border: 1px solid rgba(0,200,200,0.25);
+      border-radius: 99px;
+      padding: 4px 14px;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #00c8c8;
+      margin-bottom: 18px;
+    }
+    .landing-h1 {
+      font-size: 38px; font-weight: 900;
+      color: #fff; line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .landing-h1 span { color: #00c8c8; }
+    .landing-p { margin-top: 16px; color: #666; font-size: 15px; line-height: 1.6; }
+
+    .input-group { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+    input[type="email"] {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+      width: 100%;
+    }
+    input[type="email"]:focus { border-color: #00c8c8; }
+    input[type="email"]::placeholder { color: #444; }
+
+    .btn-join {
+      background: linear-gradient(135deg, #00c8c8, #00a0a0);
+      color: #000;
+      font-weight: 800; font-size: 15px;
+      letter-spacing: 0.04em;
+      border: none; border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      transition: opacity 0.2s;
+    }
+    .btn-join:disabled { background: #333; color: #666; cursor: not-allowed; }
+    .btn-join:hover:not(:disabled) { opacity: 0.9; }
+
+    .error-msg { color: #ff6b6b; font-size: 13px; text-align: center; }
+
+    .social-proof {
+      margin-top: 32px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .avatars { display: flex; }
+    .avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid #111;
+      margin-left: -8px;
+      opacity: 0.8;
+    }
+    .avatar:first-child { margin-left: 0; }
+    .social-text { color: #555; font-size: 13px; }
+    .social-text strong { color: #999; }
+
+    .perks {
+      margin-top: 24px;
+      display: flex; gap: 10px; flex-wrap: wrap;
+      justify-content: center;
+      position: relative; z-index: 1;
+    }
+    .perk {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 99px;
+      padding: 8px 16px;
+      font-size: 12px; color: #666; font-weight: 500;
+    }
+
+    /* ── CHECK EMAIL ── */
+    #screen-check-email {
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .check-card {
+      width: 100%; max-width: 400px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 48px 36px;
+      text-align: center;
+    }
+    .check-icon { font-size: 56px; margin-bottom: 20px; }
+    .check-card h2 { font-size: 24px; font-weight: 800; margin: 24px 0 12px; }
+    .check-card p { color: #555; font-size: 14px; line-height: 1.6; }
+    .check-card .email-highlight { color: #00c8c8; font-weight: 600; }
+    .tip-box {
+      margin-top: 28px;
+      background: rgba(0,200,200,0.08);
+      border: 1px solid rgba(0,200,200,0.2);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px; color: #00c8c8;
+    }
+
+    /* ── DASHBOARD ── */
+    #screen-dashboard {
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .dash-inner {
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Header */
+    .dash-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      position: sticky; top: 0;
+      background: #0f0f0f; z-index: 10;
+    }
+    .xp-pill {
+      border: 1.5px solid #333;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px; font-weight: 700;
+      color: #fff; letter-spacing: 0.04em;
+    }
+    .btn-signout {
+      background: none; border: none;
+      color: #666; font-size: 14px;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn-signout:hover { color: #aaa; }
+
+    /* Body */
+    .dash-body {
+      padding: 24px 20px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    /* Welcome */
+    .welcome-sub {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; color: #555;
+      margin-bottom: 6px;
+    }
+    .welcome-h1 {
+      font-size: 42px; font-weight: 900;
+      letter-spacing: -0.02em; line-height: 1.05;
+    }
+
+    /* Streak */
+    .streak-card {
+      background: #1a1a1a;
+      border-radius: 16px;
+      padding: 20px 22px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .streak-num {
+      font-size: 48px; font-weight: 900;
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    .streak-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; color: #555;
+    }
+
+    /* Check in */
+    .btn-checkin {
+      background: linear-gradient(135deg, #008080, #00c8c8);
+      border: none;
+      border-radius: 14px;
+      padding: 16px 24px;
+      color: #000;
+      font-weight: 800; font-size: 15px;
+      cursor: pointer;
+      width: fit-content;
+      font-family: inherit;
+      transition: all 0.3s;
+      letter-spacing: 0.01em;
+    }
+    .btn-checkin.checked {
+      background: #1a2e2e;
+      border: 1px solid #00c8c8;
+      color: #00c8c8;
+      cursor: default;
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; color: #555;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%; background: #00c8c8;
+      display: inline-block;
+    }
+
+    /* Track card */
+    .track-card {
+      background: #181818;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 28px 24px;
+    }
+    .xp-big {
+      font-size: 72px; font-weight: 900;
+      color: #00c8c8; line-height: 1;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .xp-big span { font-size: 52px; }
+    .xp-total {
+      font-size: 22px; font-weight: 700; color: #333;
+      margin-top: 8px; font-family: 'Courier New', monospace;
+    }
+    .xp-to-next {
+      font-size: 11px; letter-spacing: 0.1em;
+      color: #555; font-weight: 600;
+      margin: 20px 0 4px;
+    }
+    .xp-reward-name {
+      font-family: 'Courier New', monospace;
+      font-size: 13px; color: #555;
+    }
+    .progress-bar-bg {
+      margin-top: 20px; height: 4px;
+      background: #2a2a2a; border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #008080, #00c8c8);
+      border-radius: 99px;
+      transition: width 0.8s ease;
+    }
+
+    /* Stats card */
+    .stats-card {
+      background: #181818;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .stat-row { display: flex; flex-direction: column; gap: 6px; }
+    .stat-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; color: #555;
+    }
+    .stat-value { font-size: 18px; font-weight: 800; color: #00c8c8; }
+    .stat-value.mono {
+      font-family: 'Courier New', monospace;
+      font-size: 14px; color: #aaa; font-weight: 400;
+    }
+    .divider { height: 1px; background: #222; margin: 16px 0; }
+
+    /* Rewards */
+    .rewards-h2 {
+      font-size: 28px; font-weight: 900;
+      letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    .rewards-list { display: flex; flex-direction: column; gap: 12px; }
+    .reward-item {
+      background: #181818;
+      border: 1px solid #222;
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 16px;
+      opacity: 0.5;
+    }
+    .reward-icon { font-size: 28px; }
+    .reward-title { font-weight: 700; font-size: 15px; }
+    .reward-desc {
+      font-family: 'Courier New', monospace;
+      font-size: 12px; color: #555; margin-top: 2px;
+    }
+    .reward-lock { margin-left: auto; font-size: 18px; color: #333; }
+
+    /* LOGO shared */
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.04em;
+      font-size: 28px;
+      line-height: 1;
+    }
+    .logo .sw { color: #fff; }
+    .logo .oo {
+      background: linear-gradient(135deg, #ff6b2b, #ff8c00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+      transform: skewX(-8deg);
+    }
+    .logo .dz { color: #fff; }
+    .logo.lg { font-size: 42px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LANDING ═══════════════════════════════════════════════════════════ -->
+<div id="screen-landing" class="screen active">
+  <div class="glow-teal"></div>
+  <div class="glow-orange"></div>
+
+  <div class="landing-card">
+    <div class="logo-wrap">
+      <div class="logo lg"><span class="sw">SW</span><span class="oo">OO</span><span class="dz">DZ</span></div>
+    </div>
+
+    <div class="badge">FOUNDER WAITLIST</div>
+    <h1 class="landing-h1">Earn your<br><span>spot early.</span></h1>
+    <p class="landing-p">Join the Swoodz waitlist. Founders get XP boosts, early access, and exclusive rewards.</p>
+
+    <div class="input-group">
+      <input type="email" id="email-input" placeholder="Enter your email" />
+      <button class="btn-join" id="btn-join">JOIN THE WAITLIST →</button>
+      <p class="error-msg" id="error-msg" style="display:none;"></p>
+    </div>
+
+    <div class="social-proof">
+      <div class="avatars">
+        <div class="avatar" style="background:#ff6b2b;"></div>
+        <div class="avatar" style="background:#00c8c8;"></div>
+        <div class="avatar" style="background:#fff;"></div>
+        <div class="avatar" style="background:#888;"></div>
+        <div class="avatar" style="background:#ff6b2b;"></div>
+      </div>
+      <span class="social-text"><strong>7,680+</strong> founders joined</span>
+    </div>
+  </div>
+
+  <div class="perks">
+    <div class="perk">🔥 25 XP on signup</div>
+    <div class="perk">⚡ Founder XP Boost</div>
+    <div class="perk">🏆 Exclusive rewards</div>
+  </div>
+</div>
+
+<!-- ═══ CHECK EMAIL ════════════════════════════════════════════════════════ -->
+<div id="screen-check-email" class="screen">
+  <div class="check-card">
+    <div class="check-icon">✉️</div>
+    <div class="logo"><span class="sw">SW</span><span class="oo">OO</span><span class="dz">DZ</span></div>
+    <h2>Check your inbox</h2>
+    <p>We sent a magic link to<br><span class="email-highlight" id="sent-email-display"></span></p>
+    <p style="margin-top:12px; font-size:13px; color:#444;">Click the link in the email to verify your spot. It expires in 1 hour.</p>
+    <div class="tip-box">💡 Don't see it? Check your spam folder.</div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ══════════════════════════════════════════════════════════ -->
+<div id="screen-dashboard" class="screen" style="background:#0f0f0f;">
+  <div class="dash-inner">
+    <div class="dash-header">
+      <div class="logo"><span class="sw">SW</span><span class="oo">OO</span><span class="dz">DZ</span></div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="xp-pill" id="header-xp">25 XP</div>
+        <button class="btn-signout" id="btn-signout">Sign out</button>
+      </div>
+    </div>
+
+    <div class="dash-body">
+
+      <!-- Welcome -->
+      <div>
+        <p class="welcome-sub" id="dash-username">@USER · #0000 OF 10,000</p>
+        <h1 class="welcome-h1">Welcome back.</h1>
+      </div>
+
+      <!-- Streak -->
+      <div class="streak-card">
+        <span class="streak-num" id="streak-num">1</span>
+        <span class="streak-label">DAY STREAK</span>
+      </div>
+
+      <!-- Check in -->
+      <button class="btn-checkin" id="btn-checkin">Check in today</button>
+
+      <!-- My Track -->
+      <div>
+        <div class="section-label"><span class="dot"></span>MY TRACK</div>
+        <div class="track-card">
+          <div class="xp-big">25 <span>XP</span></div>
+          <div class="xp-total">/ 10,000 XP</div>
+          <p class="xp-to-next">975 XP TO NEXT REWARD</p>
+          <p class="xp-reward-name">Founder Track Waitlisted XP Boost at 1,000 XP</p>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="xp-bar" style="width:2.5%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-card">
+        <div class="stat-row">
+          <span class="stat-label">PROGRESS</span>
+          <span class="stat-value">0.25%</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-row">
+          <span class="stat-label">NEXT REWARD</span>
+          <span class="stat-value mono">Founder Track Waitlisted XP Boost</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stat-row">
+          <span class="stat-label">STREAK</span>
+          <span class="stat-value mono" id="stats-streak">1 DAYS</span>
+        </div>
+      </div>
+
+      <!-- Founder Rewards -->
+      <div>
+        <h2 class="rewards-h2">Your Founder Rewards</h2>
+        <div class="rewards-list">
+          <div class="reward-item">
+            <span class="reward-icon">⚡</span>
+            <div>
+              <div class="reward-title">XP Boost</div>
+              <div class="reward-desc">Unlock at 1,000 XP</div>
+            </div>
+            <span class="reward-lock">🔒</span>
+          </div>
+          <div class="reward-item">
+            <span class="reward-icon">🏆</span>
+            <div>
+              <div class="reward-title">Founder Badge</div>
+              <div class="reward-desc">Unlock at 5,000 XP</div>
+            </div>
+            <span class="reward-lock">🔒</span>
+          </div>
+          <div class="reward-item">
+            <span class="reward-icon">🎁</span>
+            <div>
+              <div class="reward-title">Early Access</div>
+              <div class="reward-desc">Unlock at 10,000 XP</div>
+            </div>
+            <span class="reward-lock">🔒</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:40px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG — paste your Supabase credentials here ──────────────────────────
+  const SUPABASE_URL = "https://dpvwkgwroueygnvymjkb.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_5WFYX6178HFpixPAXA_7kQ_xyT9FJ3L"; // ← paste your publishable key here
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function getPosition(email) {
+    let h = 0;
+    for (let i = 0; i < email.length; i++) {
+      h = Math.imul(31, h) + email.charCodeAt(i) | 0;
+    }
+    return (Math.abs(h) % 9000) + 500;
+  }
+
+  // ── Screen switching ───────────────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById("screen-" + id).classList.add("active");
+  }
+
+  // ── Dashboard population ───────────────────────────────────────────────────
+  let streak = 1;
+  let checkedIn = false;
+
+  function loadDashboard(user) {
+    const email = user.email || "";
+    const username = "@" + email.split("@")[0].toUpperCase();
+    const position = getPosition(email);
+
+    document.getElementById("dash-username").textContent =
+      `${username} · #${position.toLocaleString()} OF 10,000`;
+
+    showScreen("dashboard");
+  }
+
+  // ── Check-in ───────────────────────────────────────────────────────────────
+  document.getElementById("btn-checkin").addEventListener("click", function () {
+    if (checkedIn) return;
+    checkedIn = true;
+    streak++;
+    this.textContent = "✓ Checked in today";
+    this.classList.add("checked");
+    document.getElementById("streak-num").textContent = streak;
+    document.getElementById("stats-streak").textContent = streak + " DAYS";
+  });
+
+  // ── Sign out ───────────────────────────────────────────────────────────────
+  document.getElementById("btn-signout").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    checkedIn = false;
+    streak = 1;
+    showScreen("landing");
+  });
+
+  // ── Join waitlist ──────────────────────────────────────────────────────────
+  document.getElementById("btn-join").addEventListener("click", async () => {
+    const email = document.getElementById("email-input").value.trim();
+    const errEl = document.getElementById("error-msg");
+    const btn = document.getElementById("btn-join");
+
+    errEl.style.display = "none";
+
+    if (!email || !email.includes("@")) {
+      errEl.textContent = "Please enter a valid email.";
+      errEl.style.display = "block";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+
+    btn.disabled = false;
+    btn.textContent = "JOIN THE WAITLIST →";
+
+    if (error) {
+      errEl.textContent = error.message;
+      errEl.style.display = "block";
+    } else {
+      document.getElementById("sent-email-display").textContent = email;
+      showScreen("check-email");
+    }
+  });
+
+  // Enter key on email input
+  document.getElementById("email-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") document.getElementById("btn-join").click();
+  });
+
+  // ── Auth listener (handles magic link redirect) ────────────────────────────
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session && session.user) {
+      loadDashboard(session.user);
+    }
+  });
+
+  // ── Check existing session on load ────────────────────────────────────────
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session && session.user) {
+      loadDashboard(session.user);
+    }
+  });
+</script>
+</body>
+</html>
